@@ -9,7 +9,12 @@ require (
 	github.com/lrita/cmap v0.0.0-20220613164007-7fbf4a5bd437
 )
 
-require github.com/tharsis/ethermint v0.16.2 // indirect
+require (
+	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/tharsis/ethermint v0.16.2 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+)
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7 // indirect
