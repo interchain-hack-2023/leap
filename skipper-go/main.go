@@ -11,11 +11,13 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/sirupsen/logrus"
 	"github.com/thal0x/bn/bigint"
 
 	"github.com/skip-mev/skipper/bindings"
 	"github.com/skip-mev/skipper/bot"
 	"github.com/skip-mev/skipper/feed"
+	"github.com/skip-mev/skipper/services/api"
 )
 
 var (
@@ -25,7 +27,34 @@ var (
 	privateKeyFlag      = rootCmd.String("key", "", "private key to use for signing transactions (must be the deployer of the multihop contract)")
 )
 
+func logSetup(json bool, logLevel string) *logrus.Entry {
+	log := logrus.NewEntry(logrus.New())
+	log.Logger.SetOutput(os.Stdout)
+
+	if json {
+		log.Logger.SetFormatter(&logrus.JSONFormatter{})
+	} else {
+		log.Logger.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp: true,
+		})
+	}
+
+	if logLevel != "" {
+		lvl, err := logrus.ParseLevel(logLevel)
+		if err != nil {
+			log.Fatalf("Invalid loglevel: %s", logLevel)
+		}
+		log.Logger.SetLevel(lvl)
+	}
+	return log
+}
+
 func startCommand() {
+	log := logSetup(true, "info").WithFields(logrus.Fields{
+		"service": "leap/relay/api",
+		"version": "0.0.1",
+	})
+
 	key, err := crypto.HexToECDSA(*privateKeyFlag)
 	if err != nil {
 		panic(err)
@@ -47,6 +76,10 @@ func startCommand() {
 	}
 
 	fmt.Println("backrunner listening for transactions...")
+	apiConfig := api.RelayAPIConfig{ListenAddr: config.ApiHost, Log: log}
+	api := api.NewRelayAPI(apiConfig, backrunner)
+	api.StartServer()
+	fmt.Println("api listening for requests...")
 
 	txFeed := feed.NewTransactionFeed(config.CosmosRPC, config.PollMs)
 

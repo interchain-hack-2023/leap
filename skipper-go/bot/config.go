@@ -18,6 +18,7 @@ type BotConfig struct {
 	MinProfit           string         `json:"min_profit_wei"`
 	PollMs              int            `json:"poll_ms"`
 	SkipSentinalURL     string         `json:"skip_sentinal_url"`
+	ApiHost             string         `json:"api_host"`
 	Exchanges           *ExchangesConfig
 }
 
